@@ -1,3 +1,7 @@
+use crate::grammar::test;
+
+mod grammar;
+
 fn main() {
-    println!("Hello, world!");
+    test();
 }
