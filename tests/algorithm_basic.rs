@@ -1,5 +1,6 @@
 use bimap::BiMap;
 use map_macro::{hash_map, hash_set};
+use pargen::codegen::ll1::ParserCodegen;
 use std::collections::HashSet;
 
 use pargen::algorithm::FirstSet;
@@ -168,4 +169,6 @@ pub fn ll1_arithmetic_expression_grammar() {
     assert_eq!(follow("T"), hash_set! { "$", "')'", "'+'" });
     assert_eq!(follow("T'"), hash_set! { "$", "')'", "'+'" });
     assert_eq!(follow("F"), hash_set! { "$", "')'", "'+'", "'*'" });
+
+    grammar.emit_parser(&mut std::io::stdout());
 }

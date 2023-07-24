@@ -1,16 +1,16 @@
 trait Token {
-    fn id(&self) -> usize;
+    fn kind(&self) -> usize;
     fn text(&self) -> String;
 }
 
 struct BasicToken {
-    id: usize,
+    kind: usize,
     text: String,
 }
 
 impl Token for BasicToken {
-    fn id(&self) -> usize {
-        self.id
+    fn kind(&self) -> usize {
+        self.kind
     }
 
     fn text(&self) -> String {
