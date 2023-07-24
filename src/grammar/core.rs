@@ -2,14 +2,14 @@ use std::collections::{HashMap, HashSet};
 
 use super::symbol::{GrammarSymbol, Nonterminal, Terminal};
 
-pub(super) trait Productions {
+pub trait Productions {
     fn terminals(&self) -> HashSet<Terminal>;
     fn nonterminals(&self) -> HashSet<Nonterminal>;
     fn productions(&self, head: Nonterminal) -> &HashSet<Vec<GrammarSymbol>>;
 }
 
-pub(super) struct BasicGrammar {
-    pub(super) rules: HashMap<Nonterminal, HashSet<Vec<GrammarSymbol>>>,
+pub struct BasicGrammar {
+    pub rules: HashMap<Nonterminal, HashSet<Vec<GrammarSymbol>>>,
 }
 
 impl Productions for BasicGrammar {
@@ -19,7 +19,7 @@ impl Productions for BasicGrammar {
             for body in bodies {
                 for symbol in body {
                     if let GrammarSymbol::Terminal(t) = symbol {
-                        terminals.insert(t.clone());
+                        terminals.insert(*t);
                     }
                 }
             }

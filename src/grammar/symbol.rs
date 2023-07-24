@@ -1,20 +1,12 @@
+#[allow(clippy::derived_hash_with_manual_eq)]
 #[derive(Debug, Clone, Copy, Eq, Hash)]
-pub(super) enum GrammarSymbol {
+pub enum GrammarSymbol {
     Terminal(Terminal),
     Nonterminal(Nonterminal),
 }
 
-impl GrammarSymbol {
-    pub(super) fn id(&self) -> usize {
-        match &self {
-            GrammarSymbol::Terminal(symbol) => symbol.0,
-            GrammarSymbol::Nonterminal(symbol) => symbol.0,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub(super) struct Terminal(pub usize);
+pub struct Terminal(pub usize);
 
 impl Terminal {
     pub fn epsilon() -> Terminal {
@@ -23,7 +15,7 @@ impl Terminal {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub(super) struct Nonterminal(pub usize);
+pub struct Nonterminal(pub usize);
 
 impl From<Terminal> for GrammarSymbol {
     fn from(value: Terminal) -> Self {

@@ -1,7 +1,8 @@
 [package]
-name = "parser-generator"
+name = "pargen"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 bimap = "0.6.3"
+map-macro = "0.2.6"

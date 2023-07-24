@@ -1,13 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::grammar::{
-    grammar::Productions,
-    symbol::{GrammarSymbol, Terminal},
-};
+use crate::grammar::core::Productions;
+use crate::grammar::symbol::{GrammarSymbol, Terminal};
 
-pub(in crate::grammar) fn first(
-    grammar: &impl Productions,
-) -> HashMap<GrammarSymbol, HashSet<Terminal>> {
+pub fn first(grammar: &impl Productions) -> HashMap<GrammarSymbol, HashSet<Terminal>> {
     let terminals = grammar.terminals();
     let nonterminals = grammar.nonterminals();
 
@@ -27,7 +23,7 @@ pub(in crate::grammar) fn first(
 
                 let prev = first.entry(head).or_insert(HashSet::new()).clone();
 
-                let computed = { compute_first(&body, grammar, &first) };
+                let computed = { compute_first(body, &first) };
                 first.entry(head).or_insert(HashSet::new()).extend(computed);
 
                 let next = first[&head].clone();
@@ -44,7 +40,6 @@ pub(in crate::grammar) fn first(
 
 fn compute_first(
     body: &[GrammarSymbol],
-    grammar: &impl Productions,
     first: &HashMap<GrammarSymbol, HashSet<Terminal>>,
 ) -> HashSet<Terminal> {
     let epsilon = Terminal::epsilon();
@@ -58,7 +53,7 @@ fn compute_first(
                 .cloned()
                 .unwrap_or_default();
             let addition = if first_head.contains(&epsilon) {
-                compute_first(tail, grammar, first)
+                compute_first(tail, first)
             } else {
                 HashSet::new()
             };

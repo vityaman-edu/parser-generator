@@ -1,36 +1,28 @@
 use bimap::BiMap;
 
-use super::symbol::{GrammarSymbol, Nonterminal, Terminal};
+use super::symbol::GrammarSymbol;
 
-pub(super) trait Vocabulary {
+pub trait Vocabulary {
     fn symbol(&self, name: &str) -> Option<GrammarSymbol>;
     fn name(&self, symbol: GrammarSymbol) -> Option<&String>;
-
-    fn t(&self, name: &str) -> Terminal {
-        match self.symbol(name).unwrap() {
-            GrammarSymbol::Terminal(symbol) => symbol,
-            _ => panic!("Symbol {name} does not exist in vocab", name = name),
-        }
-    }
-
-    fn n(&self, name: &str) -> Nonterminal {
-        match self.symbol(name).unwrap() {
-            GrammarSymbol::Nonterminal(symbol) => symbol,
-            _ => panic!("Symbol {name} does not exist in vocab", name = name),
-        }
-    }
 }
 
-pub(super) struct BiMapVocabulary {
+pub struct BiMapVocabulary {
     map: BiMap<GrammarSymbol, String>,
+}
+
+impl From<BiMap<GrammarSymbol, String>> for BiMapVocabulary {
+    fn from(value: BiMap<GrammarSymbol, String>) -> Self {
+        BiMapVocabulary { map: value }
+    }
 }
 
 impl Vocabulary for BiMapVocabulary {
     fn symbol(&self, name: &str) -> Option<GrammarSymbol> {
-        self.map.get_by_right(name)
+        self.map.get_by_right(name).cloned()
     }
 
     fn name(&self, symbol: GrammarSymbol) -> Option<&String> {
-        todo!()
+        self.map.get_by_left(&symbol)
     }
 }
