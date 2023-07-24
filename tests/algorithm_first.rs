@@ -64,7 +64,7 @@ pub fn arithmetic_expression_grammar() {
 
     let first = first(&grammar);
     let first = |rule_name| {
-        first[&r(rule_name)]
+        first[&rule(rule_name)]
             .iter()
             .map(|terminal| name(terminal.0))
             .collect::<HashSet<_>>()
