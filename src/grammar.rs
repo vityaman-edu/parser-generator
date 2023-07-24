@@ -1,8 +1,8 @@
 mod algorithm;
 mod grammar;
 mod symbol;
+mod vocabulary;
 
-use bimap::BiMap;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
@@ -79,3 +79,4 @@ pub fn test() {
         )
     }
 }
+
