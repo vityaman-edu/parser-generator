@@ -12,6 +12,10 @@ impl Terminal {
     pub fn epsilon() -> Terminal {
         Terminal(0)
     }
+
+    pub fn end() -> Terminal {
+        Terminal(usize::MAX)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
