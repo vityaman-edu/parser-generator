@@ -1,26 +1,56 @@
-pub(super) enum Symbol {
+#[derive(Debug, Clone, Copy, Eq, Hash)]
+pub(super) enum GrammarSymbol {
     Terminal(Terminal),
     Nonterminal(Nonterminal),
 }
 
-pub(super) trait SymbolConvertable {
-    fn to_symbol(self) -> Symbol;
-}
-
-#[derive(Clone, Copy)]
-pub(super) struct Terminal(pub u64);
-
-impl SymbolConvertable for Terminal {
-    fn to_symbol(self) -> Symbol {
-        Symbol::Terminal(self)
+impl GrammarSymbol {
+    pub(super) fn id(&self) -> usize {
+        match &self {
+            GrammarSymbol::Terminal(symbol) => symbol.0,
+            GrammarSymbol::Nonterminal(symbol) => symbol.0,
+        }
     }
 }
 
-#[derive(Clone, Copy)]
-pub(super) struct Nonterminal(pub u64);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub(super) struct Terminal(pub usize);
 
-impl SymbolConvertable for Nonterminal {
-    fn to_symbol(self) -> Symbol {
-        Symbol::Nonterminal(self)
+impl Terminal {
+    pub fn epsilon() -> Terminal {
+        Terminal(0)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub(super) struct Nonterminal(pub usize);
+
+impl From<Terminal> for GrammarSymbol {
+    fn from(value: Terminal) -> Self {
+        GrammarSymbol::Terminal(value)
+    }
+}
+
+impl From<Nonterminal> for GrammarSymbol {
+    fn from(value: Nonterminal) -> Self {
+        GrammarSymbol::Nonterminal(value)
+    }
+}
+
+impl PartialEq for GrammarSymbol {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Terminal(l), Self::Terminal(r)) => l == r,
+            (Self::Nonterminal(l), Self::Nonterminal(r)) => l == r,
+            (Self::Terminal(l), Self::Nonterminal(r)) if l.0 == r.0 => panic!(
+                "Found Terminal and Nonterminal pair with equal id = {id}",
+                id = l.0
+            ),
+            (Self::Nonterminal(l), Self::Terminal(r)) if l.0 == r.0 => panic!(
+                "Found Nonterminal and Terminal pair with equal id = {id}",
+                id = l.0
+            ),
+            _ => false,
+        }
     }
 }

@@ -1,6 +1,6 @@
-use crate::grammar::test;
-
 mod grammar;
+
+use crate::grammar::test;
 
 fn main() {
     test();
