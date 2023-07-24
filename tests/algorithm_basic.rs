@@ -1,5 +1,6 @@
 use bimap::BiMap;
 use map_macro::{hash_map, hash_set};
+use pargen::algorithm::IsLL1;
 use std::collections::HashSet;
 
 use pargen::algorithm::FirstSet;
@@ -55,6 +56,8 @@ pub fn arithmetic_expression_grammar() {
         },
     };
 
+    assert!(!grammar.is_ll1());
+
     let first_set = FirstSet::build(&grammar);
     let first = |rule_name| {
         first_set
@@ -67,7 +70,7 @@ pub fn arithmetic_expression_grammar() {
     assert_eq!(first("T"), hash_set! { "(", "N" });
     assert_eq!(first("F"), hash_set! { "(", "N" });
 
-    let follow_set = FollowSet::build(&grammar, first_set);
+    let follow_set = FollowSet::build(&grammar, &first_set);
     let follow = |rule_name| {
         follow_set
             .of(rule(rule_name))
@@ -136,6 +139,8 @@ pub fn ll1_arithmetic_expression_grammar() {
         },
     };
 
+    assert!(grammar.is_ll1());
+
     let first_set = FirstSet::build(&grammar);
     let first = |rule_name| {
         first_set
@@ -150,7 +155,7 @@ pub fn ll1_arithmetic_expression_grammar() {
     assert_eq!(first("T'"), hash_set! { "'*'", "''" });
     assert_eq!(first("F"), hash_set! { "'('", "N" });
 
-    let follow_set = FollowSet::build(&grammar, first_set);
+    let follow_set = FollowSet::build(&grammar, &first_set);
     let follow = |rule_name| {
         follow_set
             .of(rule(rule_name))

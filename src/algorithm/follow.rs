@@ -19,7 +19,7 @@ impl FollowSet {
 }
 
 impl FollowSet {
-    pub fn build(g: &impl Grammar, first: FirstSet) -> FollowSet {
+    pub fn build(g: &impl Grammar, first: &FirstSet) -> FollowSet {
         let mut follow = HashMap::with_capacity(g.nonterminals().len());
 
         follow.insert(g.start(), HashSet::from([Terminal::end()]));
