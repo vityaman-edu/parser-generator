@@ -1,46 +1,58 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::grammar::core::Productions;
-use crate::grammar::symbol::{GrammarSymbol, Terminal};
+use crate::grammar::core::Grammar;
+use crate::grammar::symbol::{GrammarSymbol, Nonterminal, Terminal};
 
-pub fn first(grammar: &impl Productions) -> HashMap<GrammarSymbol, HashSet<Terminal>> {
-    let terminals = grammar.terminals();
-    let nonterminals = grammar.nonterminals();
+#[derive(Debug)]
+pub struct FirstSet {
+    map: HashMap<Nonterminal, HashSet<Terminal>>,
+}
 
-    let capacity = terminals.len() + nonterminals.len();
-    let mut first = HashMap::<GrammarSymbol, HashSet<Terminal>>::with_capacity(capacity);
-
-    for terminal in terminals {
-        first.insert(GrammarSymbol::from(terminal), HashSet::from([terminal]));
+impl FirstSet {
+    pub fn of_symbol(&self, symbol: GrammarSymbol) -> HashSet<Terminal> {
+        match symbol {
+            GrammarSymbol::Nonterminal(symbol) => self.map[&symbol].clone(),
+            GrammarSymbol::Terminal(_) => todo!(),
+        }
     }
 
-    loop {
-        let mut changed = false;
-
-        for &head in nonterminals.iter() {
-            for body in grammar.productions(head) {
-                let head = GrammarSymbol::from(head);
-
-                let prev = first.entry(head).or_insert(HashSet::new()).clone();
-
-                let computed = { compute_first(body, &first) };
-                first.entry(head).or_insert(HashSet::new()).extend(computed);
-
-                let next = first[&head].clone();
-
-                changed |= prev != next
-            }
+    pub fn of_seq(&self, seq: &[GrammarSymbol]) -> HashSet<Terminal> {
+        let epsilon = Terminal::epsilon();
+        match seq {
+            [] => HashSet::new(),
+            [GrammarSymbol::Terminal(head)] if *head == epsilon => HashSet::from([epsilon]),
+            [GrammarSymbol::Terminal(head), ..] => HashSet::from([*head]),
+            [head @ GrammarSymbol::Nonterminal(_), ..] => self.of_symbol(*head),
         }
+    }
+}
 
-        if !changed {
-            break first;
+impl FirstSet {
+    pub fn build(g: &impl Grammar) -> FirstSet {
+        let mut first = HashMap::with_capacity(g.nonterminals().len());
+
+        loop {
+            let prev = &first.clone();
+
+            for &head in g.nonterminals().iter() {
+                for body in g.alternatives_for(head) {
+                    let computed = { compute_first(body, &first) };
+                    first.entry(head).or_insert(HashSet::new()).extend(computed);
+                }
+            }
+
+            let next = &first;
+
+            if prev == next {
+                break FirstSet { map: first };
+            }
         }
     }
 }
 
 fn compute_first(
     body: &[GrammarSymbol],
-    first: &HashMap<GrammarSymbol, HashSet<Terminal>>,
+    first: &HashMap<Nonterminal, HashSet<Terminal>>,
 ) -> HashSet<Terminal> {
     let epsilon = Terminal::epsilon();
     match body {
@@ -48,10 +60,7 @@ fn compute_first(
         [GrammarSymbol::Terminal(head)] if *head == epsilon => HashSet::from([epsilon]),
         [GrammarSymbol::Terminal(head), ..] => HashSet::from([*head]),
         [GrammarSymbol::Nonterminal(head), tail @ ..] => {
-            let first_head = first
-                .get(&GrammarSymbol::from(*head))
-                .cloned()
-                .unwrap_or_default();
+            let first_head = first.get(head).cloned().unwrap_or_default();
             let addition = if first_head.contains(&epsilon) {
                 compute_first(tail, first)
             } else {
