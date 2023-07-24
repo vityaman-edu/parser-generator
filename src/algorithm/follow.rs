@@ -7,40 +7,53 @@ use crate::grammar::{
 
 use super::first::FirstSet;
 
-pub fn build_follow(g: &impl Grammar, first: FirstSet) -> HashMap<Nonterminal, HashSet<Terminal>> {
-    let mut follow = HashMap::with_capacity(g.nonterminals().len());
+#[derive(Debug)]
+pub struct FollowSet {
+    map: HashMap<Nonterminal, HashSet<Terminal>>,
+}
 
-    follow.insert(g.start(), HashSet::from([Terminal::end()]));
+impl FollowSet {
+    pub fn of(&self, symbol: Nonterminal) -> &HashSet<Terminal> {
+        &self.map[&symbol]
+    }
+}
 
-    loop {
-        let prev = &follow.clone();
+impl FollowSet {
+    pub fn build(g: &impl Grammar, first: FirstSet) -> FollowSet {
+        let mut follow = HashMap::with_capacity(g.nonterminals().len());
 
-        for head in g.nonterminals() {
-            for body in g.alternatives_for(head) {
-                for i in 0..body.len() {
-                    if let GrammarSymbol::Nonterminal(symbol) = body[i] {
-                        let first_gamma = first.of_seq(&body[(i + 1)..]);
-                        let eps = Terminal::epsilon();
-                        follow
-                            .entry(symbol)
-                            .or_insert(HashSet::new())
-                            .extend(&first_gamma - &HashSet::from([eps]));
-                        if first_gamma.contains(&eps) || first_gamma.is_empty() {
-                            let follow_head = follow.entry(head).or_default().clone();
+        follow.insert(g.start(), HashSet::from([Terminal::end()]));
+
+        loop {
+            let prev = &follow.clone();
+
+            for head in g.nonterminals() {
+                for body in g.alternatives_for(head) {
+                    for i in 0..body.len() {
+                        if let GrammarSymbol::Nonterminal(symbol) = body[i] {
+                            let first_gamma = first.of_seq(&body[(i + 1)..]);
+                            let eps = Terminal::epsilon();
                             follow
                                 .entry(symbol)
                                 .or_insert(HashSet::new())
-                                .extend(follow_head.iter());
+                                .extend(&first_gamma - &HashSet::from([eps]));
+                            if first_gamma.contains(&eps) || first_gamma.is_empty() {
+                                let follow_head = follow.entry(head).or_default().clone();
+                                follow
+                                    .entry(symbol)
+                                    .or_insert(HashSet::new())
+                                    .extend(follow_head.iter());
+                            }
                         }
                     }
                 }
             }
-        }
 
-        let next = &follow;
+            let next = &follow;
 
-        if prev == next {
-            break follow;
+            if prev == next {
+                break FollowSet { map: follow };
+            }
         }
     }
 }

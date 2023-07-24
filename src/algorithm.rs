@@ -1,5 +1,5 @@
 mod first;
 mod follow;
 
-pub use first::build_first;
-pub use follow::build_follow;
+pub use first::FirstSet;
+pub use follow::FollowSet;

@@ -1,9 +1,9 @@
 use bimap::BiMap;
 use map_macro::{hash_map, hash_set};
-use pargen::algorithm::build_follow;
 use std::collections::HashSet;
 
-use pargen::algorithm::build_first;
+use pargen::algorithm::FirstSet;
+use pargen::algorithm::FollowSet;
 use pargen::grammar::core::BasicGrammar;
 use pargen::grammar::symbol::GrammarSymbol;
 use pargen::grammar::symbol::Nonterminal;
@@ -34,7 +34,6 @@ pub fn arithmetic_expression_grammar() {
     let id = |name| *view.get_by_right(name).unwrap();
     let name = |id| *view.get_by_left(&id).unwrap();
     let rule = |name| Nonterminal(id(name));
-    let term = |name| Terminal(id(name));
     let r = |name| GrammarSymbol::Nonterminal(Nonterminal(id(name)));
     let t = |name| GrammarSymbol::Terminal(Terminal(id(name)));
 
@@ -56,7 +55,7 @@ pub fn arithmetic_expression_grammar() {
         },
     };
 
-    let first_set = build_first(&grammar);
+    let first_set = FirstSet::build(&grammar);
     let first = |rule_name| {
         first_set
             .of_symbol(rule(rule_name).into())
@@ -68,9 +67,10 @@ pub fn arithmetic_expression_grammar() {
     assert_eq!(first("T"), hash_set! { "(", "N" });
     assert_eq!(first("F"), hash_set! { "(", "N" });
 
-    let follow_set = build_follow(&grammar, first_set);
+    let follow_set = FollowSet::build(&grammar, first_set);
     let follow = |rule_name| {
-        follow_set[&rule(rule_name)]
+        follow_set
+            .of(rule(rule_name))
             .iter()
             .map(|terminal| name(terminal.0))
             .collect::<HashSet<_>>()
@@ -103,6 +103,7 @@ pub fn ll1_arithmetic_expression_grammar() {
         (8usize, "')'"),
         (9usize, "'('"),
         (10usize, "N"),
+        (usize::MAX, "$"),
     ]);
 
     let id = |name| *view.get_by_right(name).unwrap();
@@ -135,7 +136,7 @@ pub fn ll1_arithmetic_expression_grammar() {
         },
     };
 
-    let first_set = build_first(&grammar);
+    let first_set = FirstSet::build(&grammar);
     let first = |rule_name| {
         first_set
             .of_symbol(rule(rule_name).into())
@@ -149,11 +150,17 @@ pub fn ll1_arithmetic_expression_grammar() {
     assert_eq!(first("T'"), hash_set! { "'*'", "''" });
     assert_eq!(first("F"), hash_set! { "'('", "N" });
 
-    let follow_set = build_follow(&grammar, first_set);
+    let follow_set = FollowSet::build(&grammar, first_set);
     let follow = |rule_name| {
-        follow_set[rule_name]
+        follow_set
+            .of(rule(rule_name))
             .iter()
             .map(|terminal| name(terminal.0))
             .collect::<HashSet<_>>()
     };
+    assert_eq!(follow("E"), hash_set! { "$", "')'" });
+    assert_eq!(follow("E'"), hash_set! { "$", "')'" });
+    assert_eq!(follow("T"), hash_set! { "$", "')'", "'+'" });
+    assert_eq!(follow("T'"), hash_set! { "$", "')'", "'+'" });
+    assert_eq!(follow("F"), hash_set! { "$", "')'", "'+'", "'*'" });
 }

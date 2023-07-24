@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use crate::grammar::core::Grammar;
 use crate::grammar::symbol::{GrammarSymbol, Nonterminal, Terminal};
 
+#[derive(Debug)]
 pub struct FirstSet {
     map: HashMap<Nonterminal, HashSet<Terminal>>,
 }
@@ -26,23 +27,25 @@ impl FirstSet {
     }
 }
 
-pub fn build_first(g: &impl Grammar) -> FirstSet {
-    let mut first = HashMap::with_capacity(g.nonterminals().len());
+impl FirstSet {
+    pub fn build(g: &impl Grammar) -> FirstSet {
+        let mut first = HashMap::with_capacity(g.nonterminals().len());
 
-    loop {
-        let prev = &first.clone();
+        loop {
+            let prev = &first.clone();
 
-        for &head in g.nonterminals().iter() {
-            for body in g.alternatives_for(head) {
-                let computed = { compute_first(body, &first) };
-                first.entry(head).or_insert(HashSet::new()).extend(computed);
+            for &head in g.nonterminals().iter() {
+                for body in g.alternatives_for(head) {
+                    let computed = { compute_first(body, &first) };
+                    first.entry(head).or_insert(HashSet::new()).extend(computed);
+                }
             }
-        }
 
-        let next = &first;
+            let next = &first;
 
-        if prev == next {
-            break FirstSet { map: first };
+            if prev == next {
+                break FirstSet { map: first };
+            }
         }
     }
 }
