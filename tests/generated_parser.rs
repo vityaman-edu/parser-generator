@@ -1,5 +1,8 @@
+use std::marker::PhantomData;
+
 use bimap::BiMap;
 use map_macro::{hash_map, hash_set};
+use pargen::codegen::ll1::ParserCodegen;
 use pargen::grammar::core::BasicGrammar;
 use pargen::grammar::symbol::GrammarSymbol;
 use pargen::grammar::symbol::Nonterminal;
@@ -35,7 +38,6 @@ pub fn ll1_arithmetic_expression_grammar_parser() {
     ]);
 
     let id = |name| *view.get_by_right(name).unwrap();
-    let name = |id| *view.get_by_left(&id).unwrap();
     let rule = |name| Nonterminal(id(name));
     let r = |name| GrammarSymbol::Nonterminal(Nonterminal(id(name)));
     let t = |name| GrammarSymbol::Terminal(Terminal(id(name)));
@@ -64,22 +66,18 @@ pub fn ll1_arithmetic_expression_grammar_parser() {
         },
     };
 
-    // grammar.emit_parser(&mut std::io::stdout()).unwrap();
+    grammar.emit_parser(&mut std::io::stdout()).unwrap();
 
-    let mut parser = GeneratedParser {
-        stream: VectorStream::from(vec![
-            BasicToken::from(id("N"), "5"),
-            BasicToken::from(id("'+'"), "+"),
-            BasicToken::from(id("N"), "10"),
-            BasicToken::from(id("'*'"), "*"),
-            BasicToken::from(id("N"), "100"),
-            BasicToken::eof()
-        ]),
-        current: BasicToken::eof()
-    };
+    let mut parser = GeneratedParser::reading(VectorStream::from(vec![
+        BasicToken::from(id("N"), "5"),
+        BasicToken::from(id("'+'"), "+"),
+        BasicToken::from(id("N"), "10"),
+        BasicToken::from(id("'*'"), "*"),
+        BasicToken::from(id("N"), "100"),
+        BasicToken::eof(),
+    ]));
 
     parser.parse_1();
-    
 }
 
 struct GeneratedParser<S, T>
@@ -88,7 +86,7 @@ where
     S: Stream<T>,
 {
     stream: S,
-    current: T,
+    __phantom: PhantomData<T>,
 }
 
 impl<S, T> GeneratedParser<S, T>
@@ -96,6 +94,13 @@ where
     T: Token + Clone,
     S: Stream<T>,
 {
+    fn reading(stream: S) -> GeneratedParser<S, T> {
+        GeneratedParser {
+            stream,
+            __phantom: PhantomData,
+        }
+    }
+
     fn parse_5(&mut self) {
         match self.stream.current().kind() {
             9 => {

@@ -14,8 +14,8 @@ pub struct BasicToken {
 impl BasicToken {
     pub fn from(kind: usize, text: &str) -> BasicToken {
         BasicToken {
-            kind: kind,
-            text: text.to_owned()
+            kind,
+            text: text.to_owned(),
         }
     }
 

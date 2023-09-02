@@ -1,6 +1,5 @@
 use bimap::BiMap;
 use map_macro::{hash_map, hash_set};
-use pargen::codegen::ll1::ParserCodegen;
 use std::collections::HashSet;
 
 use pargen::algorithm::FirstSet;

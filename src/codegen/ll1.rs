@@ -15,6 +15,7 @@ pub trait ParserCodegen {
     fn emit_parser(&self, out: &mut impl Write) -> Result<(), io::Error>;
 }
 
+#[rustfmt::skip]
 impl<T: Grammar> ParserCodegen for T {
     fn emit_parser(&self, o: &mut impl Write) -> Result<(), io::Error> {
         debug_assert!(self.is_ll1());
@@ -26,7 +27,7 @@ impl<T: Grammar> ParserCodegen for T {
             let epsilon = Terminal::epsilon();
             let first_head = first_set.of_seq(body);
             if first_head.contains(&epsilon) {
-                &(&first_head | &follow_set.of(head)) - &HashSet::from([epsilon, end])
+                &(&first_head | follow_set.of(head)) - &HashSet::from([epsilon, end])
             } else {
                 first_head
             }
