@@ -169,6 +169,4 @@ pub fn ll1_arithmetic_expression_grammar() {
     assert_eq!(follow("T"), hash_set! { "$", "')'", "'+'" });
     assert_eq!(follow("T'"), hash_set! { "$", "')'", "'+'" });
     assert_eq!(follow("F"), hash_set! { "$", "')'", "'+'", "'*'" });
-
-    grammar.emit_parser(&mut std::io::stdout());
 }

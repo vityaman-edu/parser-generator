@@ -1,2 +1,2 @@
-mod token;
-mod stream;
+pub mod token;
+pub mod stream;
