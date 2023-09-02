@@ -33,8 +33,8 @@ impl<T: Grammar> ParserCodegen for T {
         };
 
         for head in self.nonterminals() {
-            writeln!(o, "fn parse_{nonterm}(&mut self) {{", nonterm = head.0)?;
-            writeln!(o, "  match (stream.current().kind()) {{")?;
+            writeln!(o, "    fn parse_{nonterm}(&mut self) {{", nonterm = head.0)?;
+            writeln!(o, "        match self.stream.current().kind() {{")?;
             for body in self.alternatives_for(head) {
                 let condition = first(head, body)
                     .iter()
@@ -42,27 +42,31 @@ impl<T: Grammar> ParserCodegen for T {
                     .collect::<Vec<String>>()
                     .join(" | ");
 
-                writeln!(o, "    {condition} => {{", condition = condition)?;
+                writeln!(o, "            {condition} => {{", condition = condition)?;
 
                 for symbol in body {
                     match symbol {
-                        GrammarSymbol::Terminal(term) => {
-                            writeln!(o, "      assert!(stream.current().kind() == {});", term.0)?;
-                            writeln!(o, "      println!(\"Terminal {})\"", term.0)?;
-                            writeln!(o, "      stream.next();")?;
+                        GrammarSymbol::Terminal(term) if term != &Terminal::epsilon() => {
+                            writeln!(o, "                assert!(self.stream.current().kind() == {});", term.0)?;
+                            writeln!(o, "                println!(\"Terminal {}\");", term.0)?;
+                            writeln!(o, "                self.stream.next();")?;
                         }
                         GrammarSymbol::Nonterminal(nonterm) => {
-                            writeln!(o, "      self.parse_{}()", nonterm.0)?;
+                            writeln!(o, "                self.parse_{}();", nonterm.0)?;
+                        }
+                        _ => {
+                            writeln!(o, "                // Skip an epsilon grammar symbol")?;
                         }
                     }
                 }
 
-                writeln!(o, "    }}")?;
+                writeln!(o, "            }}")?;
             }
-            writeln!(o, "    _ => panic!(\"Invalid Input!\")")?;
-            writeln!(o, "  }}")?;
+            writeln!(o, "            usize::MAX => println!(\"Terminal <EOF>\"),")?;
+            writeln!(o, "            _ => panic!(\"Invalid Input!\"),")?;
+            writeln!(o, "        }}")?;
 
-            writeln!(o, "}}")?;
+            writeln!(o, "    }}")?;
             writeln!(o)?;
         }
 
