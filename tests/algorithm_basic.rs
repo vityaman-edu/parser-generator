@@ -1,10 +1,10 @@
 use bimap::BiMap;
 use map_macro::{hash_map, hash_set};
-use pargen::algorithm::IsLL1;
 use std::collections::HashSet;
 
 use pargen::algorithm::FirstSet;
 use pargen::algorithm::FollowSet;
+use pargen::algorithm::IsLL1;
 use pargen::grammar::core::BasicGrammar;
 use pargen::grammar::symbol::GrammarSymbol;
 use pargen::grammar::symbol::Nonterminal;
